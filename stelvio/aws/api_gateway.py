@@ -29,6 +29,7 @@ from pulumi_aws.iam import (
 )
 from pulumi_aws.lambda_ import Permission
 
+from stelvio.app import StelvioApp
 from stelvio import context
 from stelvio.aws.function import (
     Function,
@@ -52,6 +53,8 @@ class ApiResources:
     rest_api: RestApi
     deployment: Deployment
     stage: Stage
+    custom_domain: tuple    # TODO bas
+    record: dict            # TODO bas
 
 
 API_GATEWAY_LOGS_POLICY = (
@@ -195,8 +198,9 @@ class _ApiRoute:
 class Api(Component[ApiResources]):
     _routes: list[_ApiRoute]
 
-    def __init__(self, name: str):
+    def __init__(self, name: str, custom_domain_name: str | None = None):
         self._routes = []
+        self.custom_domain_name = custom_domain_name
         super().__init__(name)
 
     @property
@@ -428,10 +432,29 @@ class Api(Component[ApiResources]):
             variables={"loggingLevel": "INFO"},
         )
 
+        # TODO bas
+        def _AwsCustomDomain(name: str, dns):
+            # return certificate, domain
+            return None, None
+
+        if self.custom_domain_name is not None:
+            app = StelvioApp.get_instance()
+            dns = app.dns
+            aws_custom_domain = _AwsCustomDomain(self.custom_domain_name)
+            print(aws_custom_domain)
+            record = dns.create_record()
+            rest_api.custom_domain = aws_custom_domain
+            rest_api.record = record
+        else:
+            rest_api.custom_domain = None
+            rest_api.record = None
+
         pulumi.export(f"api_{self.name}_arn", rest_api.arn)
         pulumi.export(f"api_{self.name}_invoke_url", stage.invoke_url)
         pulumi.export(f"api_{self.name}_id", rest_api.id)
         pulumi.export(f"api_{self.name}_stage_name", stage.stage_name)
+        pulumi.export(f"api_{self.name}_custom_domain", rest_api.custom_domain)
+        pulumi.export(f"api_{self.name}_record", rest_api.record)
 
         return ApiResources(rest_api, deployment, stage)
 
