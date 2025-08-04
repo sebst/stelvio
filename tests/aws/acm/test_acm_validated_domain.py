@@ -8,7 +8,7 @@ from stelvio.aws.acm import AcmValidatedDomain
 from stelvio.component import ComponentRegistry
 from stelvio.config import AwsConfig
 from stelvio.context import AppContext, _ContextStore
-from stelvio.dns import Dns, Record, DnsProviderNotConfiguredError
+from stelvio.dns import Dns, DnsProviderNotConfiguredError, Record
 
 from ..pulumi_mocks import ACCOUNT_ID, DEFAULT_REGION, PulumiTestMocks, tid
 

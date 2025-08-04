@@ -8,7 +8,7 @@ from stelvio.aws.api_gateway import Api
 from stelvio.component import ComponentRegistry
 from stelvio.config import AwsConfig
 from stelvio.context import AppContext, _ContextStore
-from stelvio.dns import Dns, Record, DnsProviderNotConfiguredError
+from stelvio.dns import Dns, DnsProviderNotConfiguredError, Record
 
 from ..pulumi_mocks import PulumiTestMocks
 
@@ -187,7 +187,9 @@ def test_api_custom_domain_with_custom_domain(
         assert len(certs) == 1
         cert = certs[0]
         assert cert.inputs["domainName"] == "api.example.com", (
-            "Certificate domainName should be 'api.example.com', got {}".format(cert.outputs["domainName"])
+            "Certificate domainName should be 'api.example.com', got {}".format(
+                cert.outputs["domainName"]
+            )
         )
 
         # Verify normal API resources were created
@@ -212,16 +214,15 @@ def test_api_custom_domain_with_custom_domain(
         # Check that API domain records have the correct domain name
         # We need to check the API records specifically (not validation records)
         api_domain_records = [
-            r for r in mock_dns.created_records 
-            if "custom-domain-record" in r[0]
+            r for r in mock_dns.created_records if "custom-domain-record" in r[0]
         ]
-        
+
         assert len(api_domain_records) >= 1, "Should have at least one API domain record"
-        
+
         # For API domain records, the name should be the custom domain
         for record in api_domain_records:
             record_name = record[1]  # This is the name field
-            if hasattr(record_name, 'apply'):
+            if hasattr(record_name, "apply"):
                 # It's a Pulumi Output, we can't directly compare it in tests
                 # Instead, let's check that we have the record we expect by resource name
                 pass  # The resource name check above already validates this
