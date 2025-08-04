@@ -8,7 +8,7 @@ from stelvio.aws.api_gateway import Api
 from stelvio.component import ComponentRegistry
 from stelvio.config import AwsConfig
 from stelvio.context import AppContext, _ContextStore
-from stelvio.dns import Dns, Record
+from stelvio.dns import Dns, Record, DnsProviderNotConfiguredError
 
 from ..pulumi_mocks import PulumiTestMocks
 
@@ -221,7 +221,7 @@ def test_api_custom_domain_without_dns_provider(component_registry):
     api.route("GET", "/users", "functions/simple.handler")
 
     # Act & Assert - This should fail when trying to access context().dns
-    with pytest.raises(AttributeError):
+    with pytest.raises(DnsProviderNotConfiguredError):
         _ = api.resources
 
     _ContextStore.clear()
